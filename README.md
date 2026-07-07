@@ -61,16 +61,18 @@ port = 8080
 ;   browser = ..\FirefoxPortable\FirefoxPortable.exe
 browser =
 
-; Open the browser when start.bat runs? Set to no if you only want the
-; server started - e.g. when start.bat is in your Windows startup apps
-; and you don't want a search page popping up on every boot.
-open_browser = yes
+; Open the browser when start.bat runs? Set to false if you only want
+; the server started - e.g. when start.bat is in your Windows startup
+; apps and you don't want a search page popping up on every boot.
+; (true/false; yes/no also accepted)
+open_browser = true
 ```
 
 The `browser` setting is handy for a portable browser that travels on
-the same USB stick, and `open_browser = no` lets you put `start.bat`
-in your Windows startup apps (`Win+R` → `shell:startup`) so the server
-is always running without a search page opening on every boot.
+the same USB stick, and `open_browser = false` lets you put `start.bat`
+in your Windows startup apps (press `Win+R`, type `shell:startup`) so
+the server is always running without a search page opening on every
+boot.
 Personal search preferences (theme, engines per query, etc.) are set
 in the web UI and live in your browser's cookies; instance-wide
 defaults live in `settings.yml`.

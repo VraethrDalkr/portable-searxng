@@ -34,8 +34,8 @@ set "BROWSER="
 if not errorlevel 1 set /p BROWSER=<"%TEMP%\psx_browser.tmp"
 del "%TEMP%\psx_browser.tmp" >nul 2>&1
 
-rem --- open a browser at all? (config.ini open_browser, normalized yes/no) ---
-set "OPENBROWSER=yes"
+rem --- open a browser at all? (config.ini open_browser, normalized true/false) ---
+set "OPENBROWSER=true"
 "%PY%" "%BASE%getcfg.py" open_browser > "%TEMP%\psx_openbrowser.tmp" 2>nul
 if not errorlevel 1 set /p OPENBROWSER=<"%TEMP%\psx_openbrowser.tmp"
 del "%TEMP%\psx_openbrowser.tmp" >nul 2>&1
@@ -111,9 +111,9 @@ exit /b 0
 
 rem --- open http://127.0.0.1:%PORT%/ in the configured browser, or the ---
 rem --- Windows default one when config.ini has no (valid) "browser" set; ---
-rem --- skipped entirely when open_browser = no (startup-apps use case) ---
+rem --- skipped entirely when open_browser = false (startup-apps use case) ---
 :open_browser
-if /i "%OPENBROWSER%"=="no" goto open_skip
+if /i "%OPENBROWSER%"=="false" goto open_skip
 if not defined BROWSER goto open_default
 if exist "%BROWSER%" goto open_custom
 echo [WARNING] The browser set in config.ini was not found:
@@ -129,5 +129,5 @@ echo Opening the browser...
 start "" "http://127.0.0.1:%PORT%/"
 goto :eof
 :open_skip
-echo Not opening a browser ^(open_browser = no in config.ini^).
+echo Not opening a browser ^(open_browser = false in config.ini^).
 goto :eof

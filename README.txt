@@ -68,10 +68,11 @@ this folder - handy for a portable browser that travels on the same
 USB stick, like the example above. If the path doesn't exist you get
 a warning and the default browser is used instead.
 
-    open_browser = yes
+    open_browser = true
 
 Whether start.bat opens the search page in a browser once the server
-is ready. Set it to no to only start the server.
+is ready (true or false; yes/no also work). Set it to false to only
+start the server.
 
 
 Starting SearXNG with Windows
@@ -79,7 +80,7 @@ Starting SearXNG with Windows
 To have SearXNG always running in the background without a search
 page popping up on every boot:
 
-1. Set open_browser = no in config.ini.
+1. Set open_browser = false in config.ini.
 2. Press Win+R, type shell:startup and press Enter.
 3. Right-click-drag start.bat into the folder that opened and choose
    "Create shortcuts here".

@@ -14,14 +14,15 @@ Known keys:
                   path is resolved against this folder and printed
                   absolute; prints nothing when unset
   open_browser  - whether start.bat opens the browser at all; printed
-                  normalized to exactly "yes" or "no" (default yes)
+                  normalized to exactly "true" or "false" (default
+                  true; no/false/0/off all count as false)
 """
 
 import os
 import sys
 
 BASE = os.path.dirname(os.path.abspath(__file__))
-DEFAULTS = {"port": "8080", "browser": "", "open_browser": "yes"}
+DEFAULTS = {"port": "8080", "browser": "", "open_browser": "true"}
 
 
 def _parse(path: str) -> dict:
@@ -50,7 +51,7 @@ def get(key: str) -> str:
     if key == "browser" and value and not os.path.isabs(value):
         value = os.path.normpath(os.path.join(BASE, value))
     if key == "open_browser":
-        return "no" if value.lower() in ("no", "false", "0", "off") else "yes"
+        return "false" if value.lower() in ("no", "false", "0", "off") else "true"
     return value
 
 
