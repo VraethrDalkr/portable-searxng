@@ -1,0 +1,36 @@
+use_default_settings: true
+
+general:
+  instance_name: "SearXNG (portable)"
+
+server:
+  bind_address: "127.0.0.1"
+  port: 8080
+  base_url: "http://127.0.0.1:8080/"
+  secret_key: "__SECRET__"
+  limiter: false
+  image_proxy: true                 # REQUIRED for privacy — default is false, which leaks your IP on image results
+  method: "GET"
+
+search:
+  safe_search: 0
+  autocomplete: ""
+  favicon_resolver: ""
+  formats: [html, json]
+
+outgoing:
+  request_timeout: 4.0
+  max_request_timeout: 15.0
+
+engines:
+  # All workhorses at flat 1.0 — consensus decides ranking (omitting `weight:` = inherits 1.0)
+  - {name: mojeek,     disabled: false}
+  - {name: brave,      disabled: false}
+  - {name: qwant,      disabled: false}
+  - {name: marginalia, disabled: true,  weight: 0.8}   # thin indie index — stays disabled until a free API key is added
+  - {name: mwmbl,      disabled: false, weight: 0.6}   # EXCEPTION 1: thin/noisy crowdsourced index — muted so it doesn't flood page one (the one weight that serves quality; keep it)
+  - {name: duckduckgo, disabled: false}
+  - {name: startpage,  disabled: false}                # EXCEPTION 2: NO per-engine timeout override (raises the whole-page deadline; add timeout: 6.0 only if /stats shows startpage slow)
+  - {name: bing,         disabled: true}   # !bi bang-only
+  - {name: yandex,       disabled: true}   # !yd bang-only
+  - {name: "google cse", disabled: true}   # !goc bang-only (Google images: !goci) — SearXNG ships this ON; keep it OFF (direct Google path, floods results)

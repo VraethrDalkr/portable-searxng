@@ -1,0 +1,12 @@
+# artifacts of a running instance (if you install inside a clone)
+dl/
+python/
+searxng/
+searxng.old/
+scripts.old/
+data/
+__pycache__/
+searxng.commit
+requirements.txt
+*.dist
+browser-launch.log

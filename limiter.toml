@@ -1,0 +1,3 @@
+# PortableSearXNG: the limiter is disabled in settings.yml (server.limiter: false),
+# single local user, no Redis/Valkey. This file only exists so the botdetection
+# module does not log a "missing config file" warning at startup.
