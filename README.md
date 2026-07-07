@@ -14,10 +14,15 @@ results without tracking you or building a profile.
 - An internet connection for the first install (~120 MB: portable Python
   from python.org, SearXNG from GitHub, dependencies from PyPI)
 
-## Quick start
+## Quick start (no git needed)
 
-1. Download the ZIP: **Code → Download ZIP** (or grab the latest
-   [release](../../releases)).
+1. **Download:** go to the [latest release](../../releases/latest) and
+   under **Assets** download `PortableSearXNG-Setup.zip`.
+   (The auto-generated "Source code" zip there works too — it's the
+   same scripts — as does the green **Code → Download ZIP** button on
+   the repo page. If you *do* use git: `git clone` this repo and later
+   `git pull`, but you never need git — `update.bat` keeps installed
+   instances current by itself.)
 2. **Important:** right-click the downloaded ZIP → Properties → check
    **Unblock** → OK, *before* extracting. This avoids SmartScreen
    warnings when running the .bat files.
@@ -25,6 +30,12 @@ results without tracking you or building a profile.
    fine.
 4. Run `install.bat` and wait. When it finishes, your browser opens on
    your own private search page.
+
+**Already have an instance?** Don't extract a new ZIP over it — that
+would overwrite your settings. Just run `update.bat`; it updates both
+SearXNG and these scripts in place and never touches your
+configuration. (Only instances older than v0.1.0 need a one-time fresh
+start: delete the folder and reinstall.)
 
 ## Daily use
 
@@ -47,12 +58,20 @@ port = 8080
 ; Leave empty to use the Windows default browser.
 ;   browser = ..\FirefoxPortable\FirefoxPortable.exe
 browser =
+
+; Open the browser when start.bat runs? Set to no if you only want the
+; server started - e.g. when start.bat is in your Windows startup apps
+; and you don't want a search page popping up on every boot.
+open_browser = yes
 ```
 
 The `browser` setting is handy for a portable browser that travels on
-the same USB stick. Personal search preferences (theme, engines per
-query, etc.) are set in the web UI and live in your browser's cookies;
-instance-wide defaults live in `settings.yml`.
+the same USB stick, and `open_browser = no` lets you put `start.bat`
+in your Windows startup apps (`Win+R` → `shell:startup`) so the server
+is always running without a search page opening on every boot.
+Personal search preferences (theme, engines per query, etc.) are set
+in the web UI and live in your browser's cookies; instance-wide
+defaults live in `settings.yml`.
 
 See `README.txt` inside the kit for the full details: engine selection
 rationale, bang shortcuts for the disabled big engines (`!goc`, `!bi`,
@@ -77,3 +96,17 @@ network access goes through Windows' built-in `curl.exe`, so corporate
 proxies and the Windows certificate store are respected. `update.bat`
 keeps both SearXNG and this kit current, with automatic rollback if a
 SearXNG update fails.
+
+## Credits
+
+- **[SearXNG](https://github.com/searxng/searxng)** — the actual
+  metasearch engine doing all the real work (AGPL-3.0). This kit only
+  makes it portable on Windows.
+- **DysDaemoN** — first beta tester, and the original idea that this
+  should be a proper portable app in the first place.
+
+## License
+
+Free software under the [GNU AGPL-3.0](LICENSE) — the same license as
+SearXNG itself. SearXNG is not bundled here; the installer downloads
+it from the official repository at install time.

@@ -51,7 +51,7 @@ Everything it needs is inside the folder.
 
 Settings (config.ini)
 ---------------------
-Edit config.ini with any text editor. It has two settings:
+Edit config.ini with any text editor. It has three settings:
 
     port = 8080
 
@@ -67,6 +67,25 @@ empty to use your Windows default browser. You can give a full path
 this folder - handy for a portable browser that travels on the same
 USB stick, like the example above. If the path doesn't exist you get
 a warning and the default browser is used instead.
+
+    open_browser = yes
+
+Whether start.bat opens the search page in a browser once the server
+is ready. Set it to no to only start the server.
+
+
+Starting SearXNG with Windows
+-----------------------------
+To have SearXNG always running in the background without a search
+page popping up on every boot:
+
+1. Set open_browser = no in config.ini.
+2. Press Win+R, type shell:startup and press Enter.
+3. Right-click-drag start.bat into the folder that opened and choose
+   "Create shortcuts here".
+
+The server then starts (briefly showing a console window) whenever you
+log in, and searching is always one bookmark away.
 
 
 Updating
@@ -124,6 +143,18 @@ The default engine selection is tuned for privacy and result quality:
   API key. To enable it: email contact@marginalia-search.com to
   request a key, then in settings.yml set marginalia's "disabled" to
   false and add your key as "api_key".
+
+
+Credits
+-------
+- SearXNG (https://github.com/searxng/searxng) - the actual metasearch
+  engine doing all the real work, AGPL-3.0. This kit only makes it
+  portable on Windows.
+- DysDaemoN - first beta tester, and the original idea that this
+  should be a proper portable app in the first place.
+
+License: this kit is free software under the GNU AGPL-3.0 (see the
+LICENSE file) - the same license as SearXNG itself.
 
 
 Caveats

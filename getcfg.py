@@ -9,17 +9,19 @@ key, junk value) just prints the built-in default, so batch callers
 never have to handle an error case.
 
 Known keys:
-  port     - TCP port the server listens on (default 8080)
-  browser  - optional browser to open search pages in; a relative path
-             is resolved against this folder and printed absolute;
-             prints nothing when unset
+  port          - TCP port the server listens on (default 8080)
+  browser       - optional browser to open search pages in; a relative
+                  path is resolved against this folder and printed
+                  absolute; prints nothing when unset
+  open_browser  - whether start.bat opens the browser at all; printed
+                  normalized to exactly "yes" or "no" (default yes)
 """
 
 import os
 import sys
 
 BASE = os.path.dirname(os.path.abspath(__file__))
-DEFAULTS = {"port": "8080", "browser": ""}
+DEFAULTS = {"port": "8080", "browser": "", "open_browser": "yes"}
 
 
 def _parse(path: str) -> dict:
@@ -47,6 +49,8 @@ def get(key: str) -> str:
         return default
     if key == "browser" and value and not os.path.isabs(value):
         value = os.path.normpath(os.path.join(BASE, value))
+    if key == "open_browser":
+        return "no" if value.lower() in ("no", "false", "0", "off") else "yes"
     return value
 
 

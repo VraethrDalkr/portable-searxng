@@ -34,6 +34,12 @@ set "BROWSER="
 if not errorlevel 1 set /p BROWSER=<"%TEMP%\psx_browser.tmp"
 del "%TEMP%\psx_browser.tmp" >nul 2>&1
 
+rem --- open a browser at all? (config.ini open_browser, normalized yes/no) ---
+set "OPENBROWSER=yes"
+"%PY%" "%BASE%getcfg.py" open_browser > "%TEMP%\psx_openbrowser.tmp" 2>nul
+if not errorlevel 1 set /p OPENBROWSER=<"%TEMP%\psx_openbrowser.tmp"
+del "%TEMP%\psx_openbrowser.tmp" >nul 2>&1
+
 rem --- first run: replace the __SECRET__ placeholder with a real secret_key ---
 findstr /c:"__SECRET__" "%BASE%settings.yml" >nul 2>&1
 if errorlevel 1 goto have_secret
@@ -45,7 +51,7 @@ rem --- refuse to double-start on the same port ---
 netstat -ano -p tcp | findstr /c:":%PORT% " | findstr /c:"LISTENING" >nul 2>&1
 if errorlevel 1 goto not_running
 echo A server is already listening on port %PORT%.
-echo If it is PortableSearXNG, you are already running - opening the browser.
+echo If it is PortableSearXNG, you are already running.
 echo For a second instance, copy the folder and set a different "port" in
 echo its config.ini.
 call :open_browser
@@ -96,7 +102,7 @@ pause
 exit /b 1
 
 :server_up
-echo Server is up - opening the browser. This window closes by itself.
+echo Server is up. This window closes by itself.
 echo Stop the server anytime with stop.bat
 echo    URL: http://127.0.0.1:%PORT%/
 call :open_browser
@@ -104,8 +110,10 @@ ping -n 6 127.0.0.1 >nul
 exit /b 0
 
 rem --- open http://127.0.0.1:%PORT%/ in the configured browser, or the ---
-rem --- Windows default one when config.ini has no (valid) "browser" set ---
+rem --- Windows default one when config.ini has no (valid) "browser" set; ---
+rem --- skipped entirely when open_browser = no (startup-apps use case) ---
 :open_browser
+if /i "%OPENBROWSER%"=="no" goto open_skip
 if not defined BROWSER goto open_default
 if exist "%BROWSER%" goto open_custom
 echo [WARNING] The browser set in config.ini was not found:
@@ -113,8 +121,13 @@ echo    %BROWSER%
 echo Opening the Windows default browser instead.
 goto open_default
 :open_custom
+echo Opening the browser...
 start "" "%BROWSER%" "http://127.0.0.1:%PORT%/"
 goto :eof
 :open_default
+echo Opening the browser...
 start "" "http://127.0.0.1:%PORT%/"
+goto :eof
+:open_skip
+echo Not opening a browser ^(open_browser = no in config.ini^).
 goto :eof
