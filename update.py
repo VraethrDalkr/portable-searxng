@@ -6,8 +6,9 @@ on-demand update). Update mode checks two upstreams - the SearXNG source
 GitHub release of KIT_REPO) - shows what is available with review URLs,
 and asks which to apply. A SearXNG update replaces the vendored searxng/
 tree (with searxng.old/ rollback on failure); a scripts update replaces
-the kit's own files (start.bat, update.py, shims, ...) but never the
-user's config.ini / settings.yml / limiter.toml, and never update.bat
+the kit's own files (start.bat, update.py, shims, ...), rebuilds
+config.ini from the newest template while keeping every user-set value,
+but never touches the user's settings.yml / limiter.toml, and never update.bat
 (a running batch file must not be rewritten - cmd re-reads it by byte
 offset; update.bat therefore stays a frozen trampoline and all real
 logic lives here, where self-replacement is safe because Python has
@@ -58,9 +59,11 @@ SRC_DIR = os.path.join(BASE, "searxng")
 OLD_DIR = os.path.join(BASE, "searxng.old")
 SCRIPTS_OLD_DIR = os.path.join(BASE, "scripts.old")
 
-# files a scripts update must never replace: update.bat is the frozen
-# trampoline (see module docstring), config.ini is the user's
-KIT_FROZEN = {"update.bat", "config.ini"}
+# the only file a scripts update must never replace: cmd re-reads a
+# running .bat by byte offset, so update.bat stays a frozen trampoline
+# (see module docstring). config.ini is NOT frozen - it gets a value-
+# preserving template merge (merge_config) so users receive new options.
+KIT_FROZEN = {"update.bat"}
 # shipped defaults the user is expected to have edited: the live file is
 # never touched, the pristine copy is tracked as <name>.dist instead
 KIT_DIST = {"settings.yml", "limiter.toml"}
@@ -299,6 +302,37 @@ def refresh_dist(src: str, name: str) -> None:
               f"with your {name} and port over what you want.")
 
 
+def merge_config(src: str, dest: str) -> None:
+    """Rebuild config.ini from the incoming template `src`, keeping every
+    value the user set in `dest`. Template comments/structure win (the
+    comments are ours; the values are the user's); keys the user set that
+    the template no longer knows are kept at the bottom, never dropped.
+
+    Uses getcfg._parse for the user's file - NOT getcfg.get(), which
+    resolves relative browser paths absolute and normalizes open_browser;
+    baking those into the rewritten file would corrupt relocatable configs.
+    """
+    user = getcfg._parse(dest)
+    with open(src, encoding="utf-8-sig") as f:
+        template = f.read().splitlines()
+    out = []
+    seen = set()
+    for line in template:
+        stripped = line.strip()
+        if stripped and stripped[0] not in ";#[" and "=" in stripped:
+            key = stripped.partition("=")[0].strip().lower()
+            seen.add(key)
+            if key in user:
+                line = f"{key} = {user[key]}"
+        out.append(line)
+    extras = [k for k in sorted(user) if k not in seen]
+    if extras:
+        out += ["", "; kept from your previous config.ini:"]
+        out += [f"{k} = {user[k]}" for k in extras]
+    with open(dest, "w", encoding="utf-8") as f:
+        f.write("\n".join(out) + "\n")
+
+
 def update_scripts(tag: str, zipball_url: str) -> None:
     """Replace the kit's own files with the given release. The replaced
     versions are kept for one cycle in scripts.old\\. Everything in the
@@ -335,6 +369,23 @@ def update_scripts(tag: str, zipball_url: str) -> None:
                 src = os.path.join(dirpath, filename)
                 rel = os.path.relpath(src, new_tree)
                 if rel in KIT_FROZEN:
+                    continue
+                if rel == "config.ini":
+                    dest = os.path.join(BASE, rel)
+                    if os.path.isfile(dest):
+                        backup = os.path.join(SCRIPTS_OLD_DIR, rel)
+                        os.makedirs(os.path.dirname(backup), exist_ok=True)
+                        shutil.copy2(dest, backup)
+                        try:
+                            merge_config(src, dest)
+                            print("  merged config.ini (your values kept; new options added)")
+                        except Exception as exc:
+                            # a stale config still works (getcfg never fails),
+                            # so a merge problem must never break the update
+                            print(f"  WARNING: could not merge config.ini ({exc}) - left yours untouched")
+                    else:
+                        shutil.copyfile(src, dest)
+                        print(f"  updated {rel}")
                     continue
                 if rel in KIT_DIST:
                     refresh_dist(src, rel)

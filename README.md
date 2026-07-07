@@ -33,8 +33,10 @@ results without tracking you or building a profile.
 
 **Already have an instance?** Don't extract a new ZIP over it — that
 would overwrite your settings. Just run `update.bat`; it updates both
-SearXNG and these scripts in place and never touches your
-configuration. (Only instances older than v0.1.0 need a one-time fresh
+SearXNG and these scripts in place. Your settings always survive:
+config.ini is rebuilt from the newest template so you receive new
+options automatically, with every value you set kept exactly as you
+wrote it. (Only instances older than v0.1.0 need a one-time fresh
 start: delete the folder and reinstall.)
 
 ## Daily use

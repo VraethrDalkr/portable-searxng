@@ -95,12 +95,16 @@ Run update.bat. It checks two things separately and lets you pick:
 - SearXNG itself (the search engine code, from its official repo)
 - these scripts (start.bat, update.py, etc., from this kit's repo)
 
-A scripts update never touches your config.ini or settings.yml. The
-files settings.yml.dist and limiter.toml.dist are pristine copies of
-the shipped defaults: when an update changes the defaults, the .dist
-file is refreshed and you're told, so you can compare it against your
-(possibly edited) live file and copy over what you want. The replaced
-script files are kept one round in scripts.old\ just in case.
+A scripts update keeps all your settings. config.ini is rebuilt from
+the newest template so you automatically receive new options and their
+explanations - every value you set is kept exactly as you wrote it
+(only comments you added yourself are replaced by the shipped ones,
+and the previous file is saved in scripts.old\). settings.yml is never
+touched: settings.yml.dist and limiter.toml.dist are pristine copies
+of the shipped defaults, and when an update changes those defaults the
+.dist file is refreshed and you're told, so you can compare it against
+your (possibly edited) live file and copy over what you want. The
+replaced script files are kept one round in scripts.old\ just in case.
 
 
 Preferences
