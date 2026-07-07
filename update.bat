@@ -22,7 +22,7 @@ pause
 exit /b 1
 
 :have_python
-"%PY%" "%BASE%update.py"
+"%PY%" "%BASE%update.py" %*
 set "RC=%errorlevel%"
 pause
 exit /b %RC%
