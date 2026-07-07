@@ -1,6 +1,9 @@
 PortableSearXNG
 ================
 
+Project page and latest version:
+    https://github.com/VraethrDalkr/portable-searxng
+
 What this is
 ------------
 A private, local metasearch engine (SearXNG) that runs entirely on your
