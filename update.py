@@ -5,7 +5,9 @@ on-demand update). Update mode checks two upstreams - the SearXNG source
 (github.com/searxng/searxng, master) and this kit's own scripts (latest
 GitHub release of KIT_REPO) - shows what is available with review URLs,
 and asks which to apply. A SearXNG update replaces the vendored searxng/
-tree (with searxng.old/ rollback on failure); a scripts update replaces
+tree (with searxng.old/ rollback on failure); when the server is running,
+the updater offers to stop it (and to start it again afterwards) instead
+of refusing. A scripts update replaces
 the kit's own files (start.bat, update.py, shims, ...), rebuilds
 config.ini from the newest template while keeping every user-set value,
 but never touches the user's settings.yml / limiter.toml, and never update.bat
@@ -35,6 +37,7 @@ import stat
 import subprocess
 import sys
 import tempfile
+import time
 import zipfile
 
 BASE = os.path.dirname(os.path.abspath(__file__))
@@ -88,6 +91,55 @@ def server_running(port: int) -> bool:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.settimeout(1)
         return s.connect_ex(("127.0.0.1", port)) == 0
+
+
+def find_server_pid(port: int):
+    """PID of the process LISTENING on :<port>, or None. Only returns it
+    when tasklist says it's a python process (ours) - the same guard
+    stop.bat uses, so we never kill someone else's server by accident.
+    """
+    try:
+        out = subprocess.run(["netstat", "-ano", "-p", "tcp"],
+                             capture_output=True, text=True, check=True).stdout
+        pid = None
+        for line in out.splitlines():
+            parts = line.split()
+            if len(parts) >= 5 and parts[1].endswith(f":{port}") and parts[3] == "LISTENING":
+                pid = parts[4]
+                break
+        if pid is None:
+            return None
+        names = subprocess.run(["tasklist", "/fi", f"PID eq {pid}"],
+                               capture_output=True, text=True).stdout
+        return int(pid) if "python" in names.lower() else None
+    except (subprocess.CalledProcessError, OSError, ValueError):
+        return None
+
+
+def stop_server(port: int) -> bool:
+    """Stop our server on <port> (mirrors stop.bat). True when the port is
+    free afterwards."""
+    pid = find_server_pid(port)
+    if pid is None:
+        return not server_running(port)
+    if subprocess.run(["taskkill", "/PID", str(pid), "/F"],
+                      capture_output=True).returncode != 0:
+        return False
+    for _ in range(10):  # give Windows a moment to release the port
+        if not server_running(port):
+            return True
+        time.sleep(0.5)
+    return not server_running(port)
+
+
+def ask_yes_no(question: str) -> bool:
+    """[Y/n] prompt; Enter = yes, EOF (closed stdin) = no, so a scripted
+    run without piped input always takes the safe path."""
+    try:
+        answer = input(f"{question} [Y/n]: ").strip().lower()
+    except EOFError:
+        return False
+    return answer in ("", "y", "yes")
 
 
 def apply_windows_patches(src_dir: str) -> None:
@@ -522,10 +574,7 @@ def main() -> int:
         return update_searxng(install_mode=True)
 
     port = int(getcfg.get("port"))
-    if server_running(port):
-        print(f"SearXNG is still running on port {port}.")
-        print("Run stop.bat first, then run update.bat again.")
-        return 1
+    server_up = server_running(port)
 
     # --- what is available? ---
     print("Checking for updates...")
@@ -586,8 +635,27 @@ def main() -> int:
             print("Cancelled - nothing changed.")
             return 0
 
+    # --- the server must be down before files are swapped; offer to do it,
+    # --- but only when the chosen action will actually change anything
+    will_do_work = (choice in ("both", "scripts") and kit_new) or \
+                   (choice in ("both", "searxng") and can_searxng)
+    stopped_server = False
+    if will_do_work and server_up and server_running(port):
+        print()
+        print(f"SearXNG is running on port {port} and must be stopped to update.")
+        if not ask_yes_no("Stop it now and continue?"):
+            print("Update cancelled - run stop.bat first, then update.bat again.")
+            return 1
+        if not stop_server(port):
+            print("Could not stop it (not our process, or taskkill failed).")
+            print("Run stop.bat yourself, then run update.bat again.")
+            return 1
+        stopped_server = True
+        print("Server stopped.")
+
     # --- scripts phase first, then re-run this file so the SearXNG phase
     # --- always executes the freshly updated logic
+    rc = 0
     if choice in ("both", "scripts"):
         if not kit_new:
             print("Scripts: nothing to update.")
@@ -596,19 +664,28 @@ def main() -> int:
             if choice == "both" and can_searxng:
                 print()
                 print("Re-running the updater (new scripts) for the SearXNG part...")
-                return subprocess.run(
+                rc = subprocess.run(
                     [sys.executable, os.path.join(BASE, "update.py"),
                      "--searxng-only", "--no-self-update"],
                 ).returncode
-            return 0
+            choice = "done"  # SearXNG part handled (or not wanted); skip the block below
 
     if choice in ("both", "searxng"):
-        if not can_searxng:
+        if can_searxng:
+            rc = update_searxng(install_mode=False)
+        else:
             print("SearXNG: nothing to update.")
-            return 0
-        return update_searxng(install_mode=False)
 
-    return 0
+    if stopped_server:
+        print()
+        if rc != 0:
+            print("The server was stopped for the update and is still stopped.")
+            print("Start it again with start.bat once the problem is fixed.")
+        elif ask_yes_no("Start the server again now?"):
+            subprocess.Popen(["cmd", "/c", os.path.join(BASE, "start.bat")],
+                             creationflags=subprocess.CREATE_NEW_CONSOLE)
+            print("Starting in its own window...")
+    return rc
 
 
 if __name__ == "__main__":

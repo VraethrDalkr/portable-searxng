@@ -95,6 +95,16 @@ Run update.bat. It checks two things separately and lets you pick:
 - SearXNG itself (the search engine code, from its official repo)
 - these scripts (start.bat, update.py, etc., from this kit's repo)
 
+If the server is running, update.bat offers to stop it for you (and to
+start it again once the update is done) - no need to run stop.bat
+first.
+
+One quirk to know: an update always runs the scripts you had BEFORE it,
+so brand-new update.bat behaviors take effect one release later. If a
+release note says "config.ini gains X automatically", that kicks in the
+NEXT time you update after this one. Nothing is lost - it just arrives
+one update later.
+
 A scripts update keeps all your settings. config.ini is rebuilt from
 the newest template so you automatically receive new options and their
 explanations - every value you set is kept exactly as you wrote it
