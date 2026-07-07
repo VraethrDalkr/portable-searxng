@@ -1,7 +1,7 @@
 # PortableSearXNG
 
 A fully portable [SearXNG](https://github.com/searxng/searxng) metasearch
-instance for Windows — no admin rights, no system installation, no Docker.
+instance for Windows - no admin rights, no system installation, no Docker.
 Everything lives in one folder that you can move, rename, copy to another
 PC, or run from a USB stick.
 
@@ -18,20 +18,20 @@ results without tracking you or building a profile.
 
 1. **Download:** go to the [latest release](../../releases/latest) and
    under **Assets** download `PortableSearXNG-Setup.zip`.
-   (The auto-generated "Source code" zip there works too — it's the
-   same scripts — as does the green **Code → Download ZIP** button on
+   (The auto-generated "Source code" zip there works too - it's the
+   same scripts - as does the green **Code → Download ZIP** button on
    the repo page. If you *do* use git: `git clone` this repo and later
-   `git pull`, but you never need git — `update.bat` keeps installed
+   `git pull`, but you never need git - `update.bat` keeps installed
    instances current by itself.)
 2. **Important:** right-click the downloaded ZIP → Properties → check
    **Unblock** → OK, *before* extracting. This avoids SmartScreen
    warnings when running the .bat files.
-3. Extract the folder anywhere — spaces and parentheses in the path are
+3. Extract the folder anywhere - spaces and parentheses in the path are
    fine.
 4. Run `install.bat` and wait. When it finishes, your browser opens on
    your own private search page.
 
-**Already have an instance?** Don't extract a new ZIP over it — that
+**Already have an instance?** Don't extract a new ZIP over it - that
 would overwrite your settings. Just run `update.bat`; it updates both
 SearXNG and these scripts in place. Your settings always survive:
 config.ini is rebuilt from the newest template so you receive new
@@ -81,7 +81,7 @@ rationale, bang shortcuts for the disabled big engines (`!goc`, `!bi`,
 
 ## Privacy defaults
 
-- Binds to `127.0.0.1` only — not reachable from the network.
+- Binds to `127.0.0.1` only - not reachable from the network.
 - Independent/privacy-respecting engines enabled (Mojeek, Brave, Qwant,
   Mwmbl, DuckDuckGo, Startpage, Wikipedia/Wikidata).
 - Google (CSE), Bing, and Yandex are disabled by default and only run
@@ -101,14 +101,14 @@ SearXNG update fails.
 
 ## Credits
 
-- **[SearXNG](https://github.com/searxng/searxng)** — the actual
+- **[SearXNG](https://github.com/searxng/searxng)** - the actual
   metasearch engine doing all the real work (AGPL-3.0). This kit only
   makes it portable on Windows.
-- **DysDaemoN** — first beta tester, and the original idea that this
+- **DysDaemoN** - first beta tester, and the original idea that this
   should be a proper portable app in the first place.
 
 ## License
 
-Free software under the [GNU AGPL-3.0](LICENSE) — the same license as
+Free software under the [GNU AGPL-3.0](LICENSE) - the same license as
 SearXNG itself. SearXNG is not bundled here; the installer downloads
 it from the official repository at install time.
