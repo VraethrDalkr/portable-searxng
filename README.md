@@ -4,9 +4,9 @@
 [![License: AGPL-3.0](https://img.shields.io/github/license/VraethrDalkr/portable-searxng)](LICENSE)
 
 A fully portable [SearXNG](https://github.com/searxng/searxng) metasearch
-instance for Windows - no admin rights, no system installation, no Docker.
-Everything lives in one folder that you can move, rename, copy to another
-PC, or run from a USB stick.
+instance for Windows - no admin rights, no system installation, no Docker
+or WSL. Everything lives in one folder that you can move, rename, copy to
+another PC, or run from a USB stick.
 
 It queries several search engines on your behalf and shows combined
 results without tracking you or building a profile.
@@ -100,7 +100,8 @@ rationale, bang shortcuts for the disabled big engines (`!goc`, `!bi`,
 
 `install.bat` fetches a pinned embeddable Python (SHA256-verified), pip,
 and the latest SearXNG master, then applies a handful of Windows
-compatibility fixes (SearXNG upstream assumes Linux/Docker). All
+compatibility fixes (SearXNG upstream assumes Linux/Docker); each fix
+retires itself automatically if upstream ever ships an equivalent one. All
 network access goes through Windows' built-in `curl.exe`, so corporate
 proxies and the Windows certificate store are respected. `update.bat`
 keeps both SearXNG and this kit current, with automatic rollback if a
