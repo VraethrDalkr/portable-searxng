@@ -118,9 +118,12 @@ if errorlevel 1 set "STAGE=shims copy (pwd.py)" & goto fail
 copy /y "%BASE%shims\sitecustomize.py" "%BASE%python\Lib\site-packages\" >nul
 if errorlevel 1 set "STAGE=shims copy (sitecustomize.py)" & goto fail
 
-rem --- snapshot the shipped defaults BEFORE first run edits them (start.bat
-rem --- injects a secret into settings.yml). update.py compares these .dist
+rem --- snapshot the shipped defaults as *.dist; update.py compares these
 rem --- copies against future kit releases to detect changed defaults.
+rem --- (Before v0.1.7 start.bat's first run wrote a secret into
+rem --- settings.yml, which made this pre-first-run ordering essential;
+rem --- the secret lives in data\secret_key now, but snapshotting early
+rem --- stays correct either way.)
 if not exist "%BASE%settings.yml.dist" copy /y "%BASE%settings.yml" "%BASE%settings.yml.dist" >nul
 if not exist "%BASE%limiter.toml.dist" copy /y "%BASE%limiter.toml" "%BASE%limiter.toml.dist" >nul
 

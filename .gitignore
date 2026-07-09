@@ -10,3 +10,4 @@ searxng.commit
 requirements.txt
 *.dist
 browser-launch.log
+psx_*.tmp

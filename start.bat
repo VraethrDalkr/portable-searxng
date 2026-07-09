@@ -50,20 +50,26 @@ set "LOGGING=false"
 if not errorlevel 1 set /p LOGGING=<"%BASE%psx_logging.tmp"
 del "%BASE%psx_logging.tmp" >nul 2>&1
 
-rem --- first run: replace the __SECRET__ placeholder with a real secret_key ---
-rem the path goes in via sys.argv, never interpolated into the Python source:
-rem a quote character in the folder path must not be able to break the code
-findstr /c:"__SECRET__" "%BASE%settings.yml" >nul 2>&1
-if errorlevel 1 goto have_secret
+rem --- per-instance secret: lives in data\secret_key and reaches SearXNG ---
+rem --- through the SEARXNG_SECRET environment variable, which overrides ---
+rem --- settings.yml's secret_key (same mechanism as SEARXNG_PORT below); ---
+rem --- settings.yml itself is never modified. An empty file (crashed    ---
+rem --- first run) is regenerated. The path goes in via sys.argv, never  ---
+rem --- interpolated into the Python source: a quote character in the    ---
+rem --- folder path must not be able to break the code.                  ---
+set "SECRETSIZE=0"
+if exist "%BASE%data\secret_key" for %%F in ("%BASE%data\secret_key") do set "SECRETSIZE=%%~zF"
+if %SECRETSIZE% gtr 0 goto have_secret
 echo Generating a fresh secret_key ^(first run^)...
-"%PY%" -c "import sys,secrets;p=sys.argv[1];d=open(p,'rb').read().replace(b'__SECRET__',secrets.token_hex(32).encode());open(p,'wb').write(d)" "%BASE%settings.yml"
+"%PY%" -c "import sys,os,secrets;p=sys.argv[1];os.makedirs(os.path.dirname(p),exist_ok=True);open(p,'w',encoding='ascii').write(secrets.token_hex(32))" "%BASE%data\secret_key"
 if not errorlevel 1 goto have_secret
-echo [ERROR] Could not write a fresh secret_key into settings.yml.
-echo The server will not be started with the placeholder key. Check that
-echo settings.yml is writable, then run start.bat again.
+echo [ERROR] Could not create data\secret_key.
+echo The server cannot start without it. Check that this folder is
+echo writable, then run start.bat again.
 pause
 exit /b 1
 :have_secret
+set /p SEARXNG_SECRET=<"%BASE%data\secret_key"
 
 rem --- refuse to double-start on the same port ---
 netstat -ano -p tcp | findstr /c:":%PORT% " | findstr /c:"LISTENING" >nul 2>&1
