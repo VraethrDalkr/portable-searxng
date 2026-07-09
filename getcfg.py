@@ -16,13 +16,17 @@ Known keys:
   open_browser  - whether start.bat opens the browser at all; printed
                   normalized to exactly "true" or "false" (default
                   true; no/false/0/off all count as false)
+  logging       - whether the server writes its output to
+                  data\\logs\\searxng.log; printed normalized to exactly
+                  "true" or "false" (default false - the log contains
+                  the search queries; yes/true/1/on all count as true)
 """
 
 import os
 import sys
 
 BASE = os.path.dirname(os.path.abspath(__file__))
-DEFAULTS = {"port": "8080", "browser": "", "open_browser": "true"}
+DEFAULTS = {"port": "8080", "browser": "", "open_browser": "true", "logging": "false"}
 
 
 def _parse(path: str) -> dict:
@@ -52,6 +56,8 @@ def get(key: str) -> str:
         value = os.path.normpath(os.path.join(BASE, value))
     if key == "open_browser":
         return "false" if value.lower() in ("no", "false", "0", "off") else "true"
+    if key == "logging":
+        return "true" if value.lower() in ("yes", "true", "1", "on") else "false"
     return value
 
 

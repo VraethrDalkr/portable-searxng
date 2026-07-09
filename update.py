@@ -276,7 +276,8 @@ def extract_source_zip(zip_path: str, dest_dir: str) -> None:
 
     Skips utils/templates/ entries (symlinks with no meaning on Windows)
     and, belt-and-braces, any entry whose Unix file mode marks it as a
-    symlink regardless of path.
+    symlink regardless of path. Rejects entries that would land outside
+    dest_dir (zip-slip: "../", absolute, or drive-letter names).
     """
     with zipfile.ZipFile(zip_path) as zf:
         names = zf.namelist()
@@ -290,6 +291,9 @@ def extract_source_zip(zip_path: str, dest_dir: str) -> None:
             rel = name[len(top_level) + 1:]
             if not rel:
                 continue  # the top-level directory entry itself
+            if (os.path.isabs(rel) or os.path.splitdrive(rel)[0]
+                    or ".." in rel.replace("\\", "/").split("/")):
+                raise RuntimeError(f"archive entry escapes the extraction folder: {name}")
             if "/utils/templates/" in name:
                 continue
             mode = (info.external_attr >> 16) & 0xFFFF

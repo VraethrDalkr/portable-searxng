@@ -71,6 +71,14 @@ browser =
 ; apps and you don't want a search page popping up on every boot.
 ; (true/false; yes/no also accepted)
 open_browser = true
+
+; Write the server's output (startup messages, errors, the requests it
+; serves) to data\logs\searxng.log? Off by default: searches are part
+; of the logged request URLs, so the log would contain your query
+; history. Turn it on when something is not working - e.g. the server
+; will not start - to capture the error details.
+; (true/false; yes/no also accepted)
+logging = false
 ```
 
 The `browser` setting is handy for a portable browser that travels on
@@ -95,6 +103,9 @@ rationale, bang shortcuts for the disabled big engines (`!goc`, `!bi`,
   when you explicitly ask via their bang shortcut.
 - Flat ranking weights: results are ranked by consensus across engines,
   not by a manual thumb on the scale.
+- No server log by default: the optional log would contain your search
+  queries, so it stays off unless you enable it in config.ini for
+  troubleshooting (`logging = true`).
 
 ## How it works
 

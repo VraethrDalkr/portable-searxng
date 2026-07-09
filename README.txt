@@ -10,7 +10,7 @@ A private, local metasearch engine (SearXNG) that runs entirely on your
 own PC. It queries several search engines on your behalf and shows you
 combined results without tracking you or building a profile. Everything
 lives in one folder - there is no system-wide installation, no admin
-rights needed, and nothing is written outside this folder.
+rights needed, and nothing is installed outside this folder.
 
 
 Quick start
@@ -51,7 +51,7 @@ Everything it needs is inside the folder.
 
 Settings (config.ini)
 ---------------------
-Edit config.ini with any text editor. It has three settings:
+Edit config.ini with any text editor. It has four settings:
 
     port = 8080
 
@@ -73,6 +73,16 @@ a warning and the default browser is used instead.
 Whether start.bat opens the search page in a browser once the server
 is ready (true or false; yes/no also work). Set it to false to only
 start the server.
+
+    logging = false
+
+Whether the server writes a log file (data\logs\searxng.log) with its
+startup messages, errors, and the requests it serves. It is off by
+default because searches are part of the logged requests, so the log
+would contain your query history. Turn it on when something is not
+working (e.g. the server will not start), run start.bat again, and
+look at the log file. You can delete the data\logs folder whenever
+you like.
 
 
 Starting SearXNG with Windows
@@ -178,6 +188,14 @@ Caveats
   only and has no multi-user accounts - anyone with access to this PC
   and this port can use it, but it is not reachable from the network or
   the internet.
+- Searches are sent as GET requests: your query is part of the page
+  URL, so searches can be bookmarked and the instance can be added as
+  a search engine in your browser. The flip side is that queries show
+  up in your browser history - and in the local log file, if you
+  turned logging on in config.ini (it is off by default). All of this
+  stays on your own PC. If you prefer otherwise, change method to
+  "POST" in settings.yml (bookmarking and the browser search-engine
+  integration stop working).
 - Brave and Mojeek may briefly rate-limit you if you fire off a lot of
   searches in a short burst. This is normal and clears up on its own
   after a short wait.

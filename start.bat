@@ -23,28 +23,46 @@ exit /b 1
 :have_python
 
 rem --- read port from config.ini via getcfg.py (default 8080 on any error) ---
+rem temp files live in this folder, not %TEMP%: keeps "nothing outside this
+rem folder" honest and stops two instances racing on a shared filename
 set "PORT=8080"
-"%PY%" "%BASE%getcfg.py" port > "%TEMP%\psx_port.tmp" 2>nul
-if not errorlevel 1 set /p PORT=<"%TEMP%\psx_port.tmp"
-del "%TEMP%\psx_port.tmp" >nul 2>&1
+"%PY%" "%BASE%getcfg.py" port > "%BASE%psx_port.tmp" 2>nul
+if not errorlevel 1 set /p PORT=<"%BASE%psx_port.tmp"
+del "%BASE%psx_port.tmp" >nul 2>&1
 
 rem --- optional browser override from config.ini (empty = Windows default) ---
 set "BROWSER="
-"%PY%" "%BASE%getcfg.py" browser > "%TEMP%\psx_browser.tmp" 2>nul
-if not errorlevel 1 set /p BROWSER=<"%TEMP%\psx_browser.tmp"
-del "%TEMP%\psx_browser.tmp" >nul 2>&1
+"%PY%" "%BASE%getcfg.py" browser > "%BASE%psx_browser.tmp" 2>nul
+if not errorlevel 1 set /p BROWSER=<"%BASE%psx_browser.tmp"
+del "%BASE%psx_browser.tmp" >nul 2>&1
 
 rem --- open a browser at all? (config.ini open_browser, normalized true/false) ---
 set "OPENBROWSER=true"
-"%PY%" "%BASE%getcfg.py" open_browser > "%TEMP%\psx_openbrowser.tmp" 2>nul
-if not errorlevel 1 set /p OPENBROWSER=<"%TEMP%\psx_openbrowser.tmp"
-del "%TEMP%\psx_openbrowser.tmp" >nul 2>&1
+"%PY%" "%BASE%getcfg.py" open_browser > "%BASE%psx_openbrowser.tmp" 2>nul
+if not errorlevel 1 set /p OPENBROWSER=<"%BASE%psx_openbrowser.tmp"
+del "%BASE%psx_openbrowser.tmp" >nul 2>&1
+
+rem --- log server output to data\logs\searxng.log? (config.ini logging) ---
+rem the actual redirection happens in sitecustomize.py, which reads the same
+rem key itself; start.bat only needs it for its messages
+set "LOGGING=false"
+"%PY%" "%BASE%getcfg.py" logging > "%BASE%psx_logging.tmp" 2>nul
+if not errorlevel 1 set /p LOGGING=<"%BASE%psx_logging.tmp"
+del "%BASE%psx_logging.tmp" >nul 2>&1
 
 rem --- first run: replace the __SECRET__ placeholder with a real secret_key ---
+rem the path goes in via sys.argv, never interpolated into the Python source:
+rem a quote character in the folder path must not be able to break the code
 findstr /c:"__SECRET__" "%BASE%settings.yml" >nul 2>&1
 if errorlevel 1 goto have_secret
 echo Generating a fresh secret_key ^(first run^)...
-"%PY%" -c "import secrets;p=r'%BASE%settings.yml';d=open(p,'rb').read().replace(b'__SECRET__',secrets.token_hex(32).encode());open(p,'wb').write(d)"
+"%PY%" -c "import sys,secrets;p=sys.argv[1];d=open(p,'rb').read().replace(b'__SECRET__',secrets.token_hex(32).encode());open(p,'wb').write(d)" "%BASE%settings.yml"
+if not errorlevel 1 goto have_secret
+echo [ERROR] Could not write a fresh secret_key into settings.yml.
+echo The server will not be started with the placeholder key. Check that
+echo settings.yml is writable, then run start.bat again.
+pause
+exit /b 1
 :have_secret
 
 rem --- refuse to double-start on the same port ---
@@ -74,7 +92,12 @@ if %LOGSIZE% gtr 5242880 move /y "%BASE%data\logs\searxng.log" "%BASE%data\logs\
 
 echo Starting PortableSearXNG in the background...
 echo    URL:  http://127.0.0.1:%PORT%/
+if /i "%LOGGING%"=="true" goto log_msg_on
+echo    Log:  off - set "logging = true" in config.ini to enable
+goto log_msg_done
+:log_msg_on
 echo    Log:  data\logs\searxng.log
+:log_msg_done
 
 rem pythonw.exe = no console window; sitecustomize.py routes its output to the log
 start "" "%PYW%" -m searx.webapp
@@ -92,10 +115,18 @@ if defined UP goto server_up
 
 echo.
 echo [ERROR] The server did not answer within 90 seconds.
+if /i "%LOGGING%"=="true" goto fail_show_log
+echo Logging is off, so there are no details to show. Set
+echo    logging = true
+echo in config.ini and run start.bat again to capture the error in
+echo data\logs\searxng.log.
+goto fail_log_done
+:fail_show_log
 echo Last log lines ^(data\logs\searxng.log^):
 echo ----------------------------------------------
-"%PY%" -c "print(''.join(open(r'%BASE%data\logs\searxng.log',encoding='utf-8',errors='replace').readlines()[-15:]))" 2>nul
+"%PY%" -c "import sys;print(''.join(open(sys.argv[1],encoding='utf-8',errors='replace').readlines()[-15:]))" "%BASE%data\logs\searxng.log" 2>nul
 echo ----------------------------------------------
+:fail_log_done
 echo You can still try opening it manually:
 echo    http://127.0.0.1:%PORT%/
 pause

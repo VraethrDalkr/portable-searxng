@@ -6,10 +6,11 @@ set "BASE=%~dp0"
 set "PY=%BASE%python\python.exe"
 
 rem --- read port from config.ini via getcfg.py (default 8080 on any error) ---
+rem temp file lives in this folder, not %TEMP% - see start.bat
 set "PORT=8080"
-"%PY%" "%BASE%getcfg.py" port > "%TEMP%\psx_port.tmp" 2>nul
-if not errorlevel 1 set /p PORT=<"%TEMP%\psx_port.tmp"
-del "%TEMP%\psx_port.tmp" >nul 2>&1
+"%PY%" "%BASE%getcfg.py" port > "%BASE%psx_port.tmp" 2>nul
+if not errorlevel 1 set /p PORT=<"%BASE%psx_port.tmp"
+del "%BASE%psx_port.tmp" >nul 2>&1
 
 set "PID="
 for /f "tokens=5" %%a in ('netstat -ano -p tcp ^| findstr /c:":%PORT% " ^| findstr /c:"LISTENING"') do set "PID=%%a"

@@ -100,7 +100,9 @@ goto fail
 
 :pip_checksum_ok
 echo    installing pip...
-"%BASE%python\python.exe" -c "import sys; sys.path.insert(0, r'%BASE%dl\%PIPWHL_NAME%'); import runpy; sys.argv[1:]=['install', '--no-warn-script-location', r'%BASE%dl\%PIPWHL_NAME%']; runpy.run_module('pip', run_name='__main__')"
+rem the wheel path goes in via sys.argv, never interpolated into the Python
+rem source: a quote character in the folder path must not break the code
+"%BASE%python\python.exe" -c "import sys; w=sys.argv.pop(1); sys.path.insert(0, w); import runpy; sys.argv[1:]=['install', '--no-warn-script-location', w]; runpy.run_module('pip', run_name='__main__')" "%BASE%dl\%PIPWHL_NAME%"
 if errorlevel 1 set "STAGE=pip install" & goto fail
 
 "%BASE%python\python.exe" -m pip --version >nul 2>&1
